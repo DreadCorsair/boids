@@ -1,0 +1,4 @@
+sceneSetups:
+- path: Assets/Mani.unity
+  isLoaded: 1
+  isActive: 1

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
-    public class Leader : MonoBehaviour
+    public class Leader : HabitatResident, IBehavioralObject
     {
         [SerializeField]
         private float _authorityRadius = 10;
@@ -22,14 +22,13 @@ namespace Assets.Scripts
 
         private bool _avoidingCollision;
 
-        [SerializeField]
-        private int _type = 0;
 
-        private float _volume;
+        public override float Authority { get; protected set; }
+        public override int Type { get; protected set; }
 
-        private void Start()
+        protected override void Start()
         {
-            _volume = ConvertToVolume(transform.localScale);
+            base.Start();
 
             StartCoroutine(ChangeDirection());
             StartCoroutine(Scan());
@@ -85,22 +84,15 @@ namespace Assets.Scripts
                 var boids = Physics.OverlapSphere(transform.position, _authorityRadius);
                 foreach (var boid in boids)
                 {
-                    if (_volume <= ConvertToVolume(boid.transform.localScale)) continue;
-
-                    var behaviorComponent = boid.GetComponent<Boid>();
+                    var behaviorComponent = boid.GetComponent<HabitatResident>();
                     if (behaviorComponent)
                     {
-                        behaviorComponent.SetType(_type);
+                        behaviorComponent.TrySetType(Type, Authority);
                     }
                 }
 
                 yield return new WaitForSeconds(1f);
             }
-        }
-
-        private float ConvertToVolume(Vector3 scale)
-        {
-            return 1f/3f * Mathf.PI * Mathf.Sqrt(scale.x / 2f) * scale.z;
         }
 
         #region Debug
@@ -112,5 +104,18 @@ namespace Assets.Scripts
         }
 
         #endregion
+
+        public void UpdateBehavior()
+        {
+            var boids = Physics.OverlapSphere(transform.position, _authorityRadius);
+            foreach (var boid in boids)
+            {
+                var behaviorComponent = boid.GetComponent<HabitatResident>();
+                if (behaviorComponent)
+                {
+                    behaviorComponent.TrySetType(Type, Authority);
+                }
+            }
+        }
     }
 }
